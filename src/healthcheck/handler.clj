@@ -23,9 +23,15 @@
   (fn []
     (success)))
 
+(defn check [f]
+  (try
+    (f)
+    (catch Exception e
+      (failure e))))
+
 (defn health-check [key f]
   (fn []
-    {key (f)}))
+    (assoc (check f) :what key)))
 
 (def hc [(health-check "Temporary directory exists?" 
                        (path-check "/tmp/healthcheck.txt"))
