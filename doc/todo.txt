@@ -1,2 +1,3 @@
 #0      Create new project from lein compojure template.
 #1      Add /status endpoint.
+#2      Check some resources that this service depends on.
