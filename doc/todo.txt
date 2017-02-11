@@ -1,0 +1,2 @@
+#0      Create new project from lein compojure template.
+#1      Add /status endpoint.
