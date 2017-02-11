@@ -5,20 +5,30 @@
             [ring.middleware.json :refer [wrap-json-response]]
             [ring.util.response :refer [response]]))
 
+(defn success []
+  {:result :ok})
+
+(defn failure [reason]
+  {:result :failed
+   :reason reason})
+
 (defn path-check [path]
   (fn []
-    {:result :ok}))
+    (let [file (java.io.File. path)]
+      (if (.exists file)
+        (success)
+        (failure (format "%s does not exist!" file))))))
 
 (defn url-check [url]
   (fn []
-    {:result :ok}))
+    (success)))
 
 (defn health-check [key f]
   (fn []
     {key (f)}))
 
 (def hc [(health-check "Temporary directory exists?" 
-                       (path-check "/tmp"))
+                       (path-check "/tmp/healthcheck.txt"))
          (health-check "Example.com is available?" 
                        (url-check "http://www.example.com"))])
 
