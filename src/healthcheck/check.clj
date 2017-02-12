@@ -1,4 +1,5 @@
-(ns healthcheck.check)
+(ns healthcheck.check
+  (:require [clj-http.client :as http]))
 
 (defn- success []
   {:result :ok})
@@ -16,13 +17,17 @@
 
 (defn url-check [url]
   (fn []
-    (success)))
+    (let [response (http/get url)
+          status (:status response)]
+      (if (= status 200)
+        (success)
+        (failure (format "%s responded with %d" url status))))))
 
 (defn- check [f]
   (try
     (f)
     (catch Exception e
-      (failure e))))
+      (failure (.getMessage e)))))
 
 (defn health-check [key f]
   (fn []
