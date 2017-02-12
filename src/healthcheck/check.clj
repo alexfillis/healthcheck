@@ -1,6 +1,9 @@
 (ns healthcheck.check
   (:require [clj-http.client :as http]))
 
+(defn- init []
+  {:result :initialising})
+
 (defn- success []
   {:result :ok})
 
@@ -29,9 +32,13 @@
     (catch Exception e
       (failure (.getMessage e)))))
 
+(defn- status [result key]
+  (assoc result :what key))
+
 (defn health-check [key f]
-  (fn []
-    (assoc (check f) :what key)))
+  (let [status (atom (status (init) key))]
+    (fn []
+      @status)))
 
 (defn check-health [checks]
   (reduce (fn [coll f] (conj coll (f))) [] checks))
