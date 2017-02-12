@@ -1,4 +1,4 @@
 #0      Create new project from lein compojure template.
 #1      Add /status endpoint.
 #2      Check some resources that this service depends on.
-#3      Cache the result of performing the check; return cahed value; refresh the result as a background task.
+#3      Cache the result of performing the check; return cached value; refresh the result as a background task.
