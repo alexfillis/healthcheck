@@ -8,7 +8,9 @@
                  [ring/ring-json "0.4.0"]
                  [clj-http "2.3.0"]]
   :plugins [[lein-ring "0.9.7"]]
-  :ring {:handler healthcheck.handler/app}
+  :ring {:handler healthcheck.handler/app
+         :init healthcheck.handler/init
+         :destroy healthcheck.handler/destroy}
   :profiles
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                         [ring/ring-mock "0.3.0"]]}})

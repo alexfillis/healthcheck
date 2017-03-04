@@ -11,6 +11,12 @@
          (health-check "Example.com is available?" 
                        (url-check "http://www.example.com"))])
 
+(defn init []
+  (println "Starting..."))
+
+(defn destroy []
+  (println "Stopping..."))
+
 (defroutes app-routes
   (GET "/" [] "Hello World")
   (GET "/status" [] (response (check-health hc)))
