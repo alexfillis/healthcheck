@@ -1,5 +1,6 @@
 (ns healthcheck.check
-  (:require [clj-http.client :as http]))
+  (:require [clj-http.client :as http])
+  (:import [java.util.concurrent ScheduledExecutorService TimeUnit]))
 
 (defn- init []
   {:result :initialising})
@@ -35,10 +36,17 @@
 (defn- status [result key]
   (assoc result :what key))
 
-(defn health-check [key f]
-  (let [status (atom (status (init) key))]
+(defn schedule-check [scheduler key f]
+  (let [current-status (atom (status (init) key))
+        refresh (fn []
+                  (printf "Refreshing %s...%n" key)
+                  (flush)
+                  (swap! current-status (fn [_] (status (f) key)))
+                  (printf "%s Refreshed!%n" key)
+                  (flush))]
+    (.scheduleAtFixedRate scheduler refresh 30 30 TimeUnit/SECONDS)
     (fn []
-      @status)))
+      @current-status)))
 
 (defn check-health [checks]
   (reduce (fn [coll f] (conj coll (f))) [] checks))
