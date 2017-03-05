@@ -7,28 +7,33 @@
             [healthcheck.check :refer :all])
   (:import [java.util.concurrent Executors ScheduledExecutorService TimeUnit]))
 
-(def scheduler (atom nil))
+(def check-executor (atom nil))
+
+(def check-scheduler (atom nil))
 
 (def hc (atom nil))
 
-(defn health-checks [scheduler]
+(defn health-checks [executor scheduler]
   [(schedule-check scheduler
                    "Temporary directory exists?"
-                   (wrap-exception-check (path-check "/tmp/healthcheck.txt")))
+                   (wrap-exception-check (timed-check executor (path-check "/tmp/healthcheck.txt"))))
    (schedule-check scheduler
                    "Example.com is available?"
-                   (wrap-exception-check (url-check "http://www.example.com")))])
+                   (wrap-exception-check (timed-check executor (url-check "http://www.example.com"))))])
 
 (defn init []
   (println "Starting...")
-  (swap! scheduler (fn [_] (Executors/newScheduledThreadPool 10)))
-  (swap! hc (fn [_] (health-checks @scheduler)))
+  (swap! check-executor (fn [_] (Executors/newFixedThreadPool 10)))
+  (swap! check-scheduler (fn [_] (Executors/newScheduledThreadPool 10)))
+  (swap! hc (fn [_] (health-checks @check-executor @check-scheduler)))
   (println "Started!"))
 
 (defn destroy []
   (println "Stopping...")
-  (.shutdown @scheduler)
-  (.awaitTermination @scheduler 3 TimeUnit/SECONDS)
+  (.shutdown @check-scheduler)
+  (.awaitTermination @check-scheduler 3 TimeUnit/SECONDS)
+  (.shutdown @check-executor)
+  (.awaitTermination @check-executor 3 TimeUnit/SECONDS)
   (println "Stopped!"))
 
 (defroutes app-routes
