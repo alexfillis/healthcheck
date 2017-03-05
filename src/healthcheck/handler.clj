@@ -4,6 +4,7 @@
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
             [ring.middleware.json :refer [wrap-json-response]]
             [ring.util.response :refer [response]]
+            [clojure.tools.logging :as log]
             [healthcheck.check :refer :all])
   (:import [java.util.concurrent Executors ScheduledExecutorService TimeUnit]))
 
@@ -22,19 +23,19 @@
                    (wrap-exception-check (timed-check executor (url-check "http://www.example.com"))))])
 
 (defn init []
-  (println "Starting...")
+  (log/info "Starting...")
   (swap! check-executor (fn [_] (Executors/newFixedThreadPool 10)))
   (swap! check-scheduler (fn [_] (Executors/newScheduledThreadPool 10)))
   (swap! hc (fn [_] (health-checks @check-executor @check-scheduler)))
-  (println "Started!"))
+  (log/info "Started!"))
 
 (defn destroy []
-  (println "Stopping...")
+  (log/info "Stopping...")
   (.shutdown @check-scheduler)
   (.awaitTermination @check-scheduler 3 TimeUnit/SECONDS)
   (.shutdown @check-executor)
   (.awaitTermination @check-executor 3 TimeUnit/SECONDS)
-  (println "Stopped!"))
+  (log/info "Stopped!"))
 
 (defroutes app-routes
   (GET "/" [] "Hello World")

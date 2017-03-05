@@ -1,5 +1,6 @@
 (ns healthcheck.check
   (:require [clj-http.client :as http])
+  (:require [clojure.tools.logging :as log])
   (:import [java.util.concurrent ExecutorService Future ScheduledExecutorService TimeUnit]))
 
 (defn- init []
@@ -49,11 +50,9 @@
 (defn schedule-check [scheduler key check]
   (let [current-status (atom (status (init) key))
         refresh (fn []
-                  (printf "Refreshing %s...%n" key)
-                  (flush)
+                  (log/infof "Scheduled refresh of %s running..." key)
                   (swap! current-status (fn [_] (status (check) key)))
-                  (printf "%s Refreshed!%n" key)
-                  (flush))]
+                  (log/infof "Scheduled refresh of %s complete!" key))]
     (.scheduleAtFixedRate scheduler refresh 30 30 TimeUnit/SECONDS)
     (fn []
       @current-status)))
