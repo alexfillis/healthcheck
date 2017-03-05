@@ -27,21 +27,21 @@
         (success)
         (failure (format "%s responded with %d" url status))))))
 
-(defn- check [f]
+(defn- wrap-exception-check [check]
   (try
-    (f)
+    (check)
     (catch Exception e
       (failure (.getMessage e)))))
 
 (defn- status [result key]
   (assoc result :what key))
 
-(defn schedule-check [scheduler key f]
+(defn schedule-check [scheduler key check]
   (let [current-status (atom (status (init) key))
         refresh (fn []
                   (printf "Refreshing %s...%n" key)
                   (flush)
-                  (swap! current-status (fn [_] (status (f) key)))
+                  (swap! current-status (fn [_] (status (check) key)))
                   (printf "%s Refreshed!%n" key)
                   (flush))]
     (.scheduleAtFixedRate scheduler refresh 30 30 TimeUnit/SECONDS)
