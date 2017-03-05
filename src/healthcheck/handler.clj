@@ -4,42 +4,17 @@
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
             [ring.middleware.json :refer [wrap-json-response]]
             [ring.util.response :refer [response]]
-            [clojure.tools.logging :as log]
-            [healthcheck.check :refer :all])
-  (:import [java.util.concurrent Executors ScheduledExecutorService TimeUnit]))
-
-(def check-executor (atom nil))
-
-(def check-scheduler (atom nil))
-
-(def hc (atom nil))
-
-(defn health-checks [executor scheduler]
-  [(schedule-check scheduler
-                   "Temporary directory exists?"
-                   (wrap-exception-check (timed-check executor (path-check "/tmp/healthcheck.txt"))))
-   (schedule-check scheduler
-                   "Example.com is available?"
-                   (wrap-exception-check (timed-check executor (url-check "http://www.example.com"))))])
+            [healthcheck.app :as app]))
 
 (defn init []
-  (log/info "Starting...")
-  (swap! check-executor (fn [_] (Executors/newFixedThreadPool 10)))
-  (swap! check-scheduler (fn [_] (Executors/newScheduledThreadPool 10)))
-  (swap! hc (fn [_] (health-checks @check-executor @check-scheduler)))
-  (log/info "Started!"))
+  (app/startup))
 
 (defn destroy []
-  (log/info "Stopping...")
-  (.shutdown @check-scheduler)
-  (.awaitTermination @check-scheduler 3 TimeUnit/SECONDS)
-  (.shutdown @check-executor)
-  (.awaitTermination @check-executor 3 TimeUnit/SECONDS)
-  (log/info "Stopped!"))
+  (app/shutdown))
 
 (defroutes app-routes
   (GET "/" [] "Hello World")
-  (GET "/status" [] (response (check-health @hc)))
+  (GET "/status" [] (response (app/check-health)))
   (route/not-found "Not Found"))
 
 (def app
