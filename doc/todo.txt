@@ -3,3 +3,4 @@
 #2      Check some resources that this service depends on.
 #3      Cache the result of performing the check; return cached value; refresh the result as a background task.
 #4      Exception thrown when checking should be handled and failure status should be set.
+#5      Scheduler thread should not block/wait indefinitely for a response when checking.
