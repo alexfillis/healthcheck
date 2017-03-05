@@ -27,11 +27,12 @@
         (success)
         (failure (format "%s responded with %d" url status))))))
 
-(defn- wrap-exception-check [check]
-  (try
-    (check)
-    (catch Exception e
-      (failure (.getMessage e)))))
+(defn wrap-exception-check [check]
+  (fn []
+    (try
+      (check)
+      (catch Exception e
+        (failure (.getMessage e))))))
 
 (defn- status [result key]
   (assoc result :what key))

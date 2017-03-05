@@ -14,10 +14,10 @@
 (defn health-checks [scheduler]
   [(schedule-check scheduler
                    "Temporary directory exists?"
-                   (path-check "/tmp/healthcheck.txt"))
+                   (wrap-exception-check (path-check "/tmp/healthcheck.txt")))
    (schedule-check scheduler
                    "Example.com is available?"
-                   (url-check "http://www.example.com"))])
+                   (wrap-exception-check (url-check "http://www.example.com")))])
 
 (defn init []
   (println "Starting...")
